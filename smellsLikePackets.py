@@ -20,7 +20,7 @@ def main():
 
 #Unpack ethernet frame: data = 1's & 0's. each section of data passed is 14 bytes, [6,6,2], [dest,src,type]
 def ethernet_frame(data):
-    dest_mac, src_mac, proto = struct.unpack('! 6s 6s H', data[:12])
+    dest_mac, src_mac, proto = struct.unpack('! 6s 6s H', data[:14])
     return get_mac_address(dest_mac), get_mac_address(src_mac), socket.htons(proto), data[14:]
 
 #Return properly formatted mac address: i.e.(AA:BB:CC:DD:EE:FF)
