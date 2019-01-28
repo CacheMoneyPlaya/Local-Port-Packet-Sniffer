@@ -10,7 +10,7 @@ def main():
     #socket.ntohs() makes sure bite order is correct and is usable accross all machines..I think?
     conn = socket.socket(socket.AF_PACKET, socket.SOCKET_RAW, socket.ntohs(3))
 
-    while TRUE:
+    while True:
      raw_data, address = conn.recvfrom(65536)
      dest_mac, src_mac, eth_proto, data = ethernet_frame(raw_data)
      print('\nEthernet frame:')
@@ -25,7 +25,7 @@ def ethernet_frame(data):
 
 #Return properly formatted mac address: i.e.(AA:BB:CC:DD:EE:FF)
 def get_mac_address(byte_address):
-    bytes_str = map('{:02x}'.format(), byte_address)
+    bytes_str = map('{:02x}'.format, byte_address)
     return ':'.join(bytes_str).upper()
 
 main()
