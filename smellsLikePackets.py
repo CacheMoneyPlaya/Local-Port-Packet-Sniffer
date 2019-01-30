@@ -1,31 +1,49 @@
 import socket
 import struct
+import binascii
 import textwrap
 
-
 def main():
-    #socket(1,2,3): 1 = Socket Family, 2 = Socket Type, 3 = Protocol, usually left out
-    #socket.AF_INET is for more observing, socket.AF_PACKET is more for manipulating packets
-    #socket.SOCKET_RAW provides access to the underlying protocols, which support socket abstractions, and are needed for packet sniffing
-    #socket.ntohs() makes sure bite order is correct and is usable accross all machines..I think?
-    conn = socket.socket(socket.AF_PACKET, socket.SOCKET_RAW, socket.ntohs(3))
+    # Get host
+    host = socket.gethostbyname(socket.gethostname())
+    print('IP: {}'.format(host))
+
+    # Create a raw socket and bind it
+    conn = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
+    conn.bind((host, 0))
+
+    # Include IP headers
+    conn.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+    # Enable promiscuous mode
+    conn.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
 
     while True:
-     raw_data, address = conn.recvfrom(65536)
-     dest_mac, src_mac, eth_proto, data = ethernet_frame(raw_data)
-     print('\nEthernet frame:')
-     print('destination: {}, Source: {}, Protocol: {}'.format(dest_mac, src_mac, eth_proto))
+        # Recive data
+        raw_data, addr = conn.recvfrom(65536)
 
+        # Unpack data
+        dest_mac, src_mac, eth_proto, data = ethernet_frame(raw_data)
 
+        print('\nEthernet Frame:')
+        print("Destination MAC: {}".format(dest_mac))
+        print("Source MAC: {}".format(src_mac))
+        print("Protocol: {}".format(eth_proto))
 
-#Unpack ethernet frame: data = 1's & 0's. each section of data passed is 14 bytes, [6,6,2], [dest,src,type]
+# Unpack ethernet frame
 def ethernet_frame(data):
-    dest_mac, src_mac, proto = struct.unpack('! 6s 6s H', data[:14])
-    return get_mac_address(dest_mac), get_mac_address(src_mac), socket.htons(proto), data[14:]
+    dest_mac, src_mac, proto = struct.unpack('!6s6s2s', data[:14])
+    return get_mac_addr(dest_mac), get_mac_addr(src_mac), get_protocol(proto), data[14:]
 
-#Return properly formatted mac address: i.e.(AA:BB:CC:DD:EE:FF)
-def get_mac_address(byte_address):
-    bytes_str = map('{:02x}'.format, byte_address)
-    return ':'.join(bytes_str).upper()
+# Return formatted MAC address AA:BB:CC:DD:EE:FF
+def get_mac_addr(bytes_addr):
+    bytes_str = map('{:02x}'.format, bytes_addr)
+    mac_address = ':'.join(bytes_str).upper()
+    return mac_address
+
+# Return formatted protocol ABCD
+def get_protocol(bytes_proto):
+    bytes_str = map('{:02x}'.format, bytes_proto)
+    protocol = ''.join(bytes_str).upper()
+    return protocol
 
 main()
