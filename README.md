@@ -1,4 +1,4 @@
-# pyMessing
+# Local port sniffer
 **Simple local Python packet sniffer**
 
 - Make sure Python version >= 3.
